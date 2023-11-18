@@ -3,10 +3,11 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
 
+
 class Gateway:
-    def __init__(self, env, channel):
+    def __init__(self, env, visualization):
         self.env = env
-        self.channel = channel
+        self.visualization = visualization
 
     def decrypt_payload(self, encrypted_payload, device_key):
         # Используем режим CBC с дополнением PKCS7
@@ -24,3 +25,4 @@ class Gateway:
         # Логика обработки кадра
         decrypted_payload = self.decrypt_payload(frame.payload, device_key=b'\x01' * 16)
         print(f"Gateway received frame from Device {frame.device_id} with decrypted payload: {decrypted_payload.decode('utf-8')}\n")
+        self.visualization.record_gateway_reception(frame.device_id, self.env.now)

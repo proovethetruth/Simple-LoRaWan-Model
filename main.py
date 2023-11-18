@@ -1,23 +1,35 @@
 
-import simpy, random
+import simpy
+from random import uniform
 
 from channel import Channel
 from device import Device
 from gateway import Gateway
-from frame import Frame
+from visualization import Visualization
 
-if __name__ == "__main__":
-    # Создание среды моделирования
-    env = simpy.Environment()
+time_of_modeling = int(input())
 
-    # Создание канала, узлов и шлюза
-    channel = Channel(env)
-    gateway = Gateway(env, channel=channel)
-    nodes = [Device(env, id=i, channel=channel, gateway=gateway) for i in range(1, 21)]  # Создаем 20 узлов
+# Создаем среду SimPy
+env = simpy.Environment()
 
-    # Запуск процессов передачи данных от разных узлов к шлюзу
-    for node in nodes:
-        env.process(node.transmit_data(interval=random.randint(1, 5)))  # Используем случайные интервалы
+# Создаем объект визуализации
+visualization = Visualization()
 
-    # Запуск среды моделирования
-    env.run(until=50)  # Увеличиваем время моделирования до 50 единиц времени
+# Создаем объекты канала, шлюза и устройств
+channel = Channel(env)
+gateway = Gateway(env, visualization)  # Передаем объект visualization в Gateway
+device_ids = range(1, 6)
+
+device_types = [1, 2, 1, 1, 2]  # Пример типов устройств для каждого устройства
+# Передаем объект visualization в каждое устройство
+devices = [Device(env, device_id, channel, gateway, visualization, device_type) for device_id, device_type in zip(device_ids, device_types)]
+
+# Передача данных от устройств
+for device in devices:
+    env.process(device.transmit_data())  # Мы больше не передаем интервал, поскольку он установлен по умолчанию в функции
+
+# Запускаем среду SimPy
+env.run(until=time_of_modeling)  # Увеличиваем время моделирования до 20 единиц времени
+
+# В конце моделирования вызываем метод для отображения графика
+visualization.plot_events(max_time=time_of_modeling)
