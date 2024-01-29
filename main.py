@@ -5,27 +5,24 @@ from random import uniform
 from channel import Channel
 from device import Device
 from gateway import Gateway
-from visualization import Visualization
+from visualization import CustomVisualization
 
 time_of_modeling = int(input())
-
-# Создаем среду SimPy
 env = simpy.Environment()
 
 # Создаем объект визуализации
-visualization = Visualization()
+custom_visualization = CustomVisualization()
 
-# Создаем объекты канала, шлюза и устройств
 channel = Channel(env)
-gateway = Gateway(env, visualization)  # Передаем объект visualization в Gateway
-devices = [Device(env, device_id, channel, gateway, visualization) for device_id in range(1, 6)]
+gateway = Gateway(env)
+devices = [Device(env, device_id, channel, gateway, custom_visualization) for device_id in range(1, 6)]
 
-# Передача данных от устройств
+
 for device in devices:
-    env.process(device.transmit_data())  # Мы больше не передаем интервал, поскольку он установлен по умолчанию в функции
+    env.process(device.transmit_data())
 
-# Запускаем среду SimPy
-env.run(until=time_of_modeling)  # Увеличиваем время моделирования до 20 единиц времени
+env.run(until=time_of_modeling)
 
-# В конце моделирования вызываем метод для отображения графика
-visualization.plot_events(max_time=time_of_modeling)
+# В конце моделирования вызываем методы для отображения графиков
+custom_visualization.plot_average_delay()
+custom_visualization.plot_queue_length()

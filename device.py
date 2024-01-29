@@ -1,4 +1,3 @@
-
 from random import uniform, randint
 from lorem_text import lorem
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -14,15 +13,11 @@ class Device:
         self.id = id
         self.channel = channel
         self.gateway = gateway
-        self.key = self.generate_key()  # Генерация ключа для каждого устройства
         self.visualization = visualization
+        self.key = self.generate_key()  # Генерация ключа для каждого устройства
         self.transmission_interval = self.generate_transmission_interval()
 
-    def check_channel_availability(self):
-        return self.channel.available
-
     def generate_key(self):
-        # В реальном применении ключи должны быть управляемыми и безопасными, это просто для демонстрации
         return b'\x01' * 16  # Используем статический ключ для примера
 
     def encrypt_payload(self, payload):
@@ -39,29 +34,30 @@ class Device:
 
     def transmit_data(self):
         while True:
-            interval = self.transmission_interval
-            yield self.env.timeout(interval)
+            # Немедленно передаем данные после пробуждения
+            print(f"Device {self.id} transmitting data at time {self.env.now}")
 
-            if self.check_channel_availability():
-                self.channel.available = False  # Занимаем канал
+            # Формирование кадра
+            plaintext_payload = lorem.words(3)
+            encrypted_payload = self.encrypt_payload(plaintext_payload)
+            frame = Frame(device_id=self.id, payload=encrypted_payload)
 
-                # Формирование кадра
-                plaintext_payload = lorem.words(3)  # Генерация трех слов в стиле Lorem Ipsum
-                encrypted_payload = self.encrypt_payload(plaintext_payload)
-                frame = Frame(device_id=self.id, payload=encrypted_payload)
+            # Передача кадра
+            self.env.process(self.transmit_frame(frame))
 
-                # Передача кадра
-                print(f"Device {self.id} transmitting data at time {self.env.now}")
-                self.env.process(self.transmit_frame(frame))  # Асинхронный вызов передачи кадра
-
-            self.channel.available = True  # Освобождаем канал
-            self.visualization.record_device_transmission(self.id, self.env.now)
-
+            # Ожидаем интервал перед следующей передачей
+            yield self.env.timeout(self.transmission_interval)
 
     def transmit_frame(self, frame):
+        transmission_time = self.env.now
         yield self.env.timeout(randint(1, 5))
         self.gateway.process_frame(frame)
         self.channel.available = True
+
+        # Добавим запись статистики визуализации о длине очереди
+        self.visualization.record_queue_length(len(self.env._queue), self.env.now)
+        # Добавим запись статистики визуализации о времени передачи данных
+        self.visualization.record_all_transmission_times(transmission_time)
         
     def generate_transmission_interval(self):
-        return 2
+        return randint(2, 8)
