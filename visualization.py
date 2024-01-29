@@ -15,31 +15,6 @@ class CustomVisualization:
     def record_all_transmission_times(self, time):
         self.all_transmission_times.append(time)
 
-    def plot_average_delay(self):
-        if not self.device_transmissions:
-            print("No device transmissions recorded.")
-            return
-
-        device_ids, device_times = zip(*self.device_transmissions)
-
-        # Фильтруем события по времени
-        device_ids = [device_id for device_id, time in zip(device_ids, device_times)]
-        device_times = [time for time in device_times]
-
-        if not device_ids:
-            print("No device transmissions recorded.")
-            return
-
-        # Вычисляем среднюю задержку
-        delays = [device_times[i] - device_times[i - 1] for i in range(1, len(device_times))]
-
-        # Строим график средней задержки
-        plt.plot(device_times[1:], delays, label='Average Delay')
-        plt.xlabel('Time')
-        plt.ylabel('Average Delay')
-        plt.legend()
-        plt.show()
-
     def plot_queue_length(self):
         if not self.queue_lengths:
             print("No queue lengths recorded.")
