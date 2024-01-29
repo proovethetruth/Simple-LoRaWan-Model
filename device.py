@@ -9,14 +9,13 @@ from frame import Frame
 
 
 class Device:
-    def __init__(self, env, id, channel, gateway, visualization, device_type):
+    def __init__(self, env, id, channel, gateway, visualization):
         self.env = env
         self.id = id
         self.channel = channel
         self.gateway = gateway
         self.key = self.generate_key()  # Генерация ключа для каждого устройства
         self.visualization = visualization
-        self.device_type = device_type
         self.transmission_interval = self.generate_transmission_interval()
 
     def check_channel_availability(self):
@@ -42,7 +41,6 @@ class Device:
         while True:
             interval = self.transmission_interval
             yield self.env.timeout(interval)
-            print(f"Device {self.id} (Type {self.device_type}) transmitting data at time {self.env.now}")
 
             if self.check_channel_availability():
                 self.channel.available = False  # Занимаем канал
@@ -53,12 +51,8 @@ class Device:
                 frame = Frame(device_id=self.id, payload=encrypted_payload)
 
                 # Передача кадра
-                print(f"Device {self.id} (Type {self.device_type}) transmitting data at time {self.env.now}")
+                print(f"Device {self.id} transmitting data at time {self.env.now}")
                 self.env.process(self.transmit_frame(frame))  # Асинхронный вызов передачи кадра
-
-                if self.device_type == 3:
-                    # Если тип устройства 3, передача происходит постоянно, но с учетом интервала
-                    continue
 
             self.channel.available = True  # Освобождаем канал
             self.visualization.record_device_transmission(self.id, self.env.now)
@@ -70,9 +64,4 @@ class Device:
         self.channel.available = True
         
     def generate_transmission_interval(self):
-        if self.device_type == 1:
-            # Тип 1: Равная периодичность
-            return 2  # Пример равной периодичности
-        elif self.device_type == 2:
-            # Тип 2: Разные интервалы случайной длины
-            return uniform(1, 5)  # Пример случайного интервала от 1 до 5
+        return 2

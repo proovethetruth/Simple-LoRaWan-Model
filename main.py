@@ -18,11 +18,7 @@ visualization = Visualization()
 # Создаем объекты канала, шлюза и устройств
 channel = Channel(env)
 gateway = Gateway(env, visualization)  # Передаем объект visualization в Gateway
-device_ids = range(1, 6)
-
-device_types = [1, 2, 1, 1, 2]  # Пример типов устройств для каждого устройства
-# Передаем объект visualization в каждое устройство
-devices = [Device(env, device_id, channel, gateway, visualization, device_type) for device_id, device_type in zip(device_ids, device_types)]
+devices = [Device(env, device_id, channel, gateway, visualization) for device_id in range(1, 6)]
 
 # Передача данных от устройств
 for device in devices:
