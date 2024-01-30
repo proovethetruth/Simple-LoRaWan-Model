@@ -8,7 +8,7 @@ import simpy
 from frame import Frame
 
 class Device:
-    def __init__(self, env, id, channel, gateway):
+    def __init__(self, env, id, channel, gateway, visualization):
         self.env = env
         self.id = id
         self.channel = channel
@@ -16,6 +16,7 @@ class Device:
         self.key = self.generate_key()  # Генерация ключа для каждого устройства
         self.transmission_interval = self.generate_transmission_interval()
         self.failed_transmission_attempts = 0
+        self.visualization = visualization
 
     def generate_key(self):
         return b'\x01' * 16  # Используем статический ключ для примера
@@ -38,6 +39,7 @@ class Device:
             while True:
                 self.failed_transmission_attempts += 1
                 print(f"Device {self.id} waiting for a channel...")
+                self.visualization.record_waiting_messages(self.failed_transmission_attempts, self.env.now)  # Записываем количество ожидающих сообщений
                 channel_index = self.channel.request_channel()
                 if channel_index is not None:
                     break
